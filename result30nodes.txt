@@ -1,0 +1,297 @@
+0
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.0703719423194379e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.9844677931848525e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 3 | N(28) : Nic(3) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.9844677931848525e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 2.7959492768209832e-1, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.2915949226300321e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.0703719423194379e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.9278017290662327e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.0703719423194379e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.9278017290662327e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 3.6103716580956363e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 3.8824481115790654e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 6 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 9.1456436486128126e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 1.5024538416396471e-1, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+2
+SF(1 | 4 | N(29) : Nic(3) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.314095236393687e-1, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.3120972343956854e-1, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 3.1609323839168868e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 3.1609323839168868e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.171672545804233e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+5
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.0703719423194379e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.9844677931848525e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 3 | N(28) : Nic(3) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.9844677931848525e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 2.7959492768209832e-1, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.2915949226300321e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.0703719423194379e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.9278017290662327e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.0703719423194379e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.9278017290662327e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 3.6103716580956363e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 3.8824481115790654e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 6 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 9.1456436486128126e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 1.5024538416396471e-1, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+8
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340248962655601e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.4556247118487782e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340248962655601e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0111802674043335e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4242424242424242e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6464646464646465e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3288668179288499e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.4565263923969353e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340248962655601e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.9544909250007058e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340248962655601e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.9544909250007058e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8800489913656476e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1521578349030626e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9313485924148008e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.8137015335912727e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+14
+
+	SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340248962655601e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.4556247118487782e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340248962655601e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0111802674043335e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4242424242424242e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6464646464646465e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3288668179288499e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.4565263923969353e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340248962655601e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.9544909250007058e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340248962655601e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.9544909250007058e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8800489913656476e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1521578349030626e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9313485924148008e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.8137015335912727e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+
+15
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+17
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+18
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+20
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+22
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+24
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+27
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+28
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+29
+SF(1 | 2 | N(2) : Nic(2) -> N(25) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 2.45537540453779e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(2 | 2 | N(5) : Nic(2) -> N(26) : Type(1) : false | PoiPara(4.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1
+    | delay : 3.0108692385562325e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(3 | 3 | N(3) : Nic(2) -> N(11) : Type(1) : false | PoiPara(5.0,2.0000000000000001e-1) | delay : 2.4239934975064825e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0,
+    itemlenth : 2.0000000000000001e-1 | delay : 4.6459688335802524e-2, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 2.0000000000000001e-1) 
+	SF(4 | 3 | N(4) : Nic(2) -> N(13) : Type(1) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3286384710451136e-2, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 4.456071722826839e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(5 | 2 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(3.0,2.0000000000000001e-1) | delay : 2.3340006846402006e-3, throughput : 6.0000000000000009e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 2.0000000000000001e-1 | delay : 2.954164603298309e-2, throughput : 6.0000000000000009e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.0000000000000001e-1) 
+	SF(6 | 2 | N(6) : Nic(2) -> N(9) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 2.3340006846402006e-3, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.954164603298309e-2, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(7 | 5 | N(6) : Nic(2) -> N(10) : Type(2) : false | PoiPara(2.0,2.5e-1) | delay : 1.8789193142589464e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    2.5e-1 | delay : 2.1509957677423752e-1, throughput : 5.0e-1, jitter : 0.0, packetloss : 0.0, itemlenth : 2.5e-1) 
+	SF(8 | 4 | N(12) : Nic(3) -> N(16) : Type(2) : false | PoiPara(3.0,1.0000000000000001e-1) | delay : 2.9310516808845947e-2, throughput : 3.0000000000000004e-1, jitter : 0.0,
+    packetloss : 0.0, itemlenth : 1.0000000000000001e-1 | delay : 8.809946448668253e-2, throughput : 3.0000000000000004e-1, jitter : 0.0, packetloss : 0.0, itemlenth :
+    1.0000000000000001e-1)
+
+

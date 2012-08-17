@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Maude for Windows - Readme</title>
+<link href="styles.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div class="document">
+<h1>Important Installation Notes<br>
+  Maude for Windows 2.6</h1>
+<div class="code">
+	<p>Disclaimer: Because the program is licensed free of charge, there is no warranty for the program, to the extent permitted by applicable law. The copyright holders and/or other parties provide the program &quot;as is&quot; without warranty of any kind, either expressed or implied, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose. The entire risk as to the quality and performance of the program is with you. Should the program prove defective, you assume the cost of all necessary servicing, repair or correction.</p>
+	<p>Maude is not fully tested on Windows and some of the software used is <em>alpha</em> and should be treated as such. <em>Caveat usor</em>.</p>
+</div>
+<h2><a name="TOC"></a>Table of contents</h2>
+<ol>
+  <li><a href="#TOC">Table of contents.</a></li>
+  <li><a href="#Description">Description.</a></li>
+  <li><a href="#MDT">The Maude Development Tools.</a></li>
+  <li><a href="#RunningCygwin">Running different cygwin installations and other cygwin issues.</a></li>
+  <li><a href="#Required">Required files.</a></li>
+  <li><a href="#Included">Included files.</a></li>
+  <li><a href="#Installing">Installing Maude for Windows. Installation types.</a></li>
+  <li><a href="#Uninstalling">Uninstalling Maude for Windows.</a></li>
+  <li><a href="#cygwinbat">Modifying the cygwin.bat file.</a></li>
+  <li><a href="#InstallingCygwin">Installing Cygwin <em>a posteriori</em>.</a></li>
+  <li><a href="#Credits">Credits.</a></li>
+</ol>
+<h2><a name="Description"></a>Description.</h2>
+<p>This installer allows you to run Maude on a Windows platform without requiring any aditional software installed in your system. The maude binary included in the installer has been compiled with the help of the <a href="http://cygwin.com">Cygwin</a> environment.</p>
+<p>This binary version should compatible with all the <a href="http://en.wikipedia.org/wiki/I586">i586 compatible processors</a>.</p>
+<h2><a name="MDT"></a>The Maude Development Tools.</h2>
+<p>The <a href="http://moment.dsic.upv.es/mdt">Maude Development Tools</a> are a set of <a href="http://www.eclipse.org">Eclipse</a> plugins (publicly available under the terms of the <a href="http://www.gnu.org/copyleft/gpl.html">GPL license</a>) that provide:</p>
+<ul>
+  <li>An API to use Maude from a Java Eclipse plug-in.</li>
+  <li>A simple GUI to develop Maude programs inside the Eclipse platform, taking advantage of its features (friendly user interface, editors withsyntax highlighting, CVS/SVN features, etc.).</li>
+  </ul>
+<p>The Maude Development Tools plugin is designed to run in UNIX/Linux systems with the &quot;bash&quot; and &quot;kill&quot; commands. Because of Java does not provide native support for POSIX signals, we need these external programs to know the PID of the Maude process and to send the SIGINT signal to it (entering the debug mode).</p>
+<p>This distribution of Maude for Windows is specially designed to be used 
+    by the Maude Development Tools Plug-in. It includes all the required files to execute these two commands in a Windows environment as if it were a UNIX/Linux system. </p>
+<h2><a name="RunningCygwin"></a>Running different cygwin installations and other cygwin issues.</h2>
+<p>The Cygwin team discourages running or even installing more than one <a href="http://www.cygwin.com/">Cygwin</a> on the same OS instance of Windows. Cygwin is designed to be  unique  in your system (installed only in one place). </p>
+<p>There are several situations that can produce errors or misconfigurations in your system, for example: </p>
+<ul>
+  <li>Cygwin conflicts occur if cygwin discovers that there are more than one cygwin1.dll's on your machine. You should not have multiple versions of cygwin1.dll in your system. If you have them, they should not be in the search path (they must be isolated, and not loaded at the same time).</li>
+  <li>Cygwin keeps its file system mount point information in the registry. This is global to any cygwin application.</li>
+  <li>Cygwin maintains a uniqued shared memory region when a cygwin application is running, this can cause problem between different versions, ...</li>
+  <li>etc. </li>
+</ul>
+<p>If you have not installed Cygwin previosly to Maude for Windows, you will not have any problem running Maude. If you have Cygwin installed in your system, the installer will try to install Maude without interfering with Cygwin. Nevertheless, you should read this document If you experience problems running Maude for Windows, you shoul avoid to run any other Cygwin applications at the same time.</p>
+<p>If you are unable to get the Maude for Windows application running, maybe you should try to <a href="http://maude.cs.uiuc.edu/download/windows.html">compile Maude by yourself</a>. </p>
+<h2><a name="Required"></a>Required files.</h2>
+<p>To run Maude as an standalone program with the default options you will need:</p>
+<ul>
+  <li> cygwin1.dll</li>
+  </ul>
+<p>To run Maude inside the Maude Development Tools plug-in, the programs &quot;bash&quot; and &quot;kill&quot; are also required. These programs need the following libraries:</p>
+<ul>
+  <li>cygwin1.dll</li>
+  <li>cygncurses-8.dll</li>
+  <li> cygintl-3.dll</li>
+  <li> cygiconv-2.dll</li>
+  <li> cygreadline6.dll</li>
+  </ul>
+<p>Bash also needs the &quot;/tmp&quot; folder. In case you have not installed Maude previously, this folder will be missing. By selecting the option &quot;MDT Eclipse plugin options <font face="Courier New, Courier, mono">-&gt;</font> Required mount points&quot;, the &quot;cygwin\tmp&quot; folder in the Maude for Windows installation directory will be mounted in &quot;/tmp&quot;, avoiding the warning message. </p>
+<h2><a name="Included"></a>Included files.</h2>
+<p>The maude files included are:</p>
+<ul>
+  <li> maude.exe (Maude executable)</li>
+  <li> maude.ico (Icon file)</li>
+  <li> license.txt (GPL v2 license)</li>
+  <li> prelude.maude (Maude interpreter standard prelude. v2.5)</li>
+  <li> full-maude.maude (Full Maude specification. v 2.4)</li>
+  <li> model-checker.maude (Maude LTL satisfiability solver and model checker. v2.3)</li>
+  <li> linear.maude (Maude Diophantine solver. v2.3)</li>
+  <li> socket.maude (Maude internet socket external objects. v2.3)</li>
+  <li> term-order.maude (Strict total ordering on terms of a given kind. v2.3)</li>
+  <li> machine-int.maude (Approximation of Maude 1.0 MachineInt. v2.3)</li>
+  <li> metaInterpreter.maude (Maude meta-interpreters. v.2.5)</li>
+  <li> readme_2.6.htm (This file).</li>
+  <li> styles.css (CSS Stylesheet for the readme HTML document).</li>
+</ul>
+<p>
+  Cygwin is requierd to run Maude under Windows. To avoid to have to install
+  Cygwin completely, the requierd files are included in this installation, these are:</p>
+<ul>
+  <li> /bin/cygwin1.dll (Cygwin dll environment)</li>
+  <li> /bin/cygncurses-8.dll (Required by  bash.exe)</li>
+  <li> /bin/cygintl-3.dll (Required by bash.exe)</li>
+  <li> /bin/cygiconv-2.dll (Required by bash.exe)</li>
+  <li> /bin/cygreadline6.dll (Required by bash.exe)</li>
+  <li> /bin/ls.exe (Required by maude.exe to list files)</li>
+  <li> /bin/bash.exe (Needed by the Maude Development Tools -MDT- plug-in)</li>
+  <li> /bin/kill.exe (Needed by the Maude Development Tools -MDT- plug-in)</li>
+  </ul>
+<h2><a name="Installing"></a>Installing Maude for Windows.
+  Installation types.</h2>
+<p>The installer provides some predefined installation types based on your system configuration. If the options that you have selected can conflict with any  previous Cygwin configuration, the installer will warn you before the installation process starts.</p>
+<p>The installer also creates a backup of the registry key corresponding to the mount points defined by your previous cygwin installation (&quot;HKEY_LOCAL_MACHINE\SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\&quot;). The file with this information is &quot;backup\mountpoints.reg&quot;, in your Maude for Windows installation directory. So that, you can always recover the previous state of this key  to its initial state. </p>
+<h3>Best for this system.</h3>
+<p>We recommend this installation. The installer automatically checks your systems configuration looking for a previous cygwin installation. It tries to install the maximum number of options that does not conflict with your cygwin configuration (if found).</p>
+<ul>
+  <li>
+    <p>If <strong>you have not cygwin installed</strong> in your system, all the options will be selected.</p>
+  </li>
+  <li>
+    <p>If <strong>you have cygwin installed</strong> in your system and <strong>you do not plan to use the MDT plug-ins</strong>, you can directly deselect the &quot;MDT Eclipse plug-in options&quot; component.</p>
+  </li>
+  <li>
+    <p>If <strong>you have cygwin installed</strong> and <strong>you plan to use the MDT plug-ins</strong>, you can try any of the following two solutions:</p>
+    <ol>
+      <li>Install the required binary files provided by the installer and add them to the path environment variable. This option implies that you will have to <a href="#cygwinbat">modify the PATH environment variable in you &quot;cygwin.bat&quot;</a> file by hand.</li>
+      <li>Try to use the binary files provided by your previous cygwin installation. In this case, you will have to add manually your &quot;/bin&quot; (for example, by default it will be, &quot;c:\cygwin\bin&quot;) folder to the PATH environment variable. This option may cause problems if you have different versions of the cygwin libraries in your system.</li>
+    </ol>
+  </li>
+</ul>
+<h3>Full.</h3>
+<p>This installation type selects all the components without checking if they conflict with your system configuration. In that case, you will be warned.</p>
+<h3> Maude only.</h3>
+<p>This installation type selects the all the components required to run Maude, excluding the ones related with the MDT plug-ins. This install type should no conflict with any previous installation of cygwin.</p>
+<h3>Custom.</h3>
+<p>In case you select a set of components that does not correspond to any of the previous types, the Custom type will be selected. </p>
+<h2><a name="Uninstalling"></a>Uninstalling Maude for Windows.</h2>
+<p>Maude for Windows provides an uninstallation program to remove all the installed components. When the program is executed, it scans the windows registry to find all the mount points defined in the cygwin environment. These mount points are showed in a list to the user, who can select which ones are going to be removed. By default, the mount points that are linked to folders under the MaudeFW program directory are selected to be deleted.</p>
+<h2><a name="cygwinbat"></a>Modifying the cygwin.bat file.</h2>
+<p>To run properly the Maude Development Tools plug-in, the &quot;bash.exe&quot; and &quot;kill.exe&quot; commands must be on the search    path of the system (the PATH environment variable). This step can be done    automatically by the installation program if you select the &quot;Add cygwin files to path&quot; component. You can see the result in this example:</p>
+<blockquote>
+  <pre class="code">Microsoft Windows XP [Versi&oacute;n 5.1.2600]
+(C) Copyright 1985-2001 Microsoft Corp. 
+
+C:\&gt;echo %PATH%
+C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;
+d:\Program Files\cvsnt;d:\Program Files\MaudeFW\cygwin\bin;
+
+C:\&gt;</pre>
+</blockquote>
+<p> Nevertheless, if you have a complete installation of Cygwin in your system, 
+  to include these files when installing Maude for Windows may cause problems when 
+  running Cygwin. To solve this, you only have to modify the &quot;cygwin.bat&quot; file, in
+the cygwin directory, modifying by hand its contents.</p>
+<p> By default &quot;cygwin.bat&quot; will contain be something like this:</p>
+<blockquote>
+  <pre class="code">@echo off
+
+
+c:
+chdir c:\cygwin\bin
+
+
+
+bash --login -i</pre>
+</blockquote>
+<p> Adding a line setting the value of the PATH var would solve the problem,   
+for example:</p>
+<blockquote>
+  <pre class="code">@echo off
+
+
+SET PATH=%SystemRoot%\system32;%SystemRoot%
+
+
+c:
+chdir c:\cygwin\bin
+
+
+bash --login -i</pre>
+</blockquote>
+<h2><a name="InstallingCygwin"></a>Installing cygwin <em>a posteriori</em>.</h2>
+<p>If you have decided to install Cygwin once you have installed Maude for Windows, we recommend to uninstall Maude for Windows first (and its mount points). Then you can install Cygwin normally.</p>
+<p>Finally, when the cygwin installation finishes, you can reinstall Maude for Windows, the installer will analyze your new configuration and will select the best options for your system. </p>
+<h2><a name="Credits"></a>Credits.</h2>
+<p>Maude is developed by the <a href="http://maude.cs.uiuc.edu">Maude Team</a> at the <a href="http://www.uiuc.edu">University of Illinois at Urbana-Champaign</a>.</p>
+<p>The precompiled version of Maude for Windows is developed and maintained by Abel G&oacute;mez, member of <a href="http://moment.dsic.upv.es">The MOMENT Project</a>, at the <a href="http://www.upv.es">Universidad Polit&egrave;cnica de Val&egrave;ncia</a>.</p>
+<p>The MOMENT Project members:</p>
+<ul>
+  <li>Isidro Ramos Salavert.</li>
+  <li>Jos&eacute; &Aacute;. Cars&iacute; Cubel.</li>
+  <li>Artur Boronat Moll.</li>
+  <li>Abel G&oacute;mez Llana.</li>
+</ul>
+<p class="signature">&copy; Abel G&oacute;mez. 2011. The MOMENT project<br>
+    <a href="http://moment.dsic.upv.es">http://moment.dsic.upv.es</a></p>
+</div>
+</body>
+</html>

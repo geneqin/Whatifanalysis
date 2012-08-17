@@ -1,0 +1,1198 @@
+fmod PROB is *** keep prob, use later
+    pr FLOAT .
+    sort Prob .
+    op pr : Float -> Prob [ctor] .  *** Float has to be in [0.0,1.0].
+    op pr : Bool -> Prob [ctor] .   *** This is to promote booleans to probs
+
+    *** These have the same precedence values as their boolean counterparts
+    op _and_ : Prob Prob -> Prob [assoc comm prec 55] .
+    op _or_ : Prob Prob -> Prob [assoc comm prec 59] .
+    op not_ : Prob -> Prob [prec 53] .
+    op true : -> Prob .
+    op false : -> Prob .
+
+    vars F1 F2 : Float . vars P1 P2 : Prob .
+    eq pr(F1) and pr(F2) = pr(F1 * F2) .
+    eq not pr(F1) = pr(1.0 - F1) .
+    eq P1 or P2 = not (not P1 and not P2) .  *** Either P1 or P2 occurs if it is not the case that neither occurs.
+    eq true = pr(1.0) .
+    eq false = pr(0.0) .
+    eq pr(true) = true .
+    eq pr(false) = false .
+endfm
+
+fmod TIME is   *** now we only use time = 0, and time =1 indicating the on and donw of a node
+	pr NAT .
+	sort Time .
+	op T(_) : Nat -> Time [format (d g g d o)] .
+
+endfm  
+
+fmod CONFIG is
+	
+	sort Configuration . 
+	
+endfm
+
+fmod PROCESSOR is
+    	pr NAT .
+    	pr FLOAT .
+	pr CONFIG .
+	
+	
+	sorts PowerLevel Qlenth Xrate Mobility NeighborList Node NodeID Processor .
+	sorts Parameter . *** parameters for bernoulli process and DBMAP
+	sort Interface .
+	
+	
+ 	
+       
+	***sort Configuration .	
+	subsorts Node Processor < Configuration .
+	
+	op N(_:_|_|_|_|_|_{_|_}) : Nat Interface PowerLevel Mobility Xrate Qlenth Parameter Nat Nat -> Node [format (nt d d d d d d d d d d d d d d d d d d d d d )] . 
+***"node" here is identified by node and link a pair of nodes
+	op N(_) : Nat -> NodeID . 
+	op Nic(_) : Nat -> Interface .
+	op P(_) : Float -> PowerLevel .
+	op M(_) : Float -> Mobility .
+	op X(_) : Float -> Xrate .
+	op Q(_) : Float -> Qlenth .
+	op PoiPara(_,_) : Float Float -> Parameter [format (g g g g g g g)] .
+	op TotalIn(_) : Nat -> Nat .  *** total number of incoming flow number
+	op CurIn(_) : Nat -> Nat .    *** current number of incoming flow number. Only the current number is equal to the total number, the rule will take effect. 
+	
+	
+    
+endfm
+
+view Processor from TRIV to PROCESSOR is
+   sort Elt to Processor .
+endv
+
+
+fmod QoS is
+	
+	sort QoSType .
+	op delay : -> QoSType [ctor format (r o)] .
+	op throughput : -> QoSType [ctor format (r o)] .
+	op jitter : -> QoSType [ctor format (r o)] . 
+	op packetloss : -> QoSType [ctor format (r o)] .
+	op itemlenth :  -> QoSType [ctor format (r o)] .
+endfm 
+
+view QoS from TRIV to QoS is
+    	sort Elt to QoSType .
+endv
+
+
+fmod QoSANNOTATION is
+	pr QoS .
+	pr PROB .
+	pr NAT .
+	sort QoSAnnotation .
+	op _:_ : QoSType Float -> QoSAnnotation [ctor format (nt d d d ) ] .
+	op _:_ : QoSType Nat -> QoSAnnotation [ctor format (nt d d d ) ] .
+	op unknown : -> QoSAnnotation [ctor] .
+endfm
+
+view QoSAnnotation from TRIV to QoSANNOTATION is
+	sort Elt to QoSAnnotation .
+endv
+
+
+
+fmod FLOW is
+
+	pr PROCESSOR .
+	
+	sort Flow .
+	sorts Delay TP Jitter LossRate .
+        subsorts Delay TP Jitter LossRate < Float .
+	sort Type .
+	op Type(_) : Nat -> Type . *** video 1, voice 2, FTP, 3 Web 4; 1,2 are discrete MMRP (f, M, P) while 3,4 is Bernoulli Batch (N,P)
+	
+	sort Path .	
+	subsort Flow < Configuration .	
+	***op F(_|_->_:_:_) : Nat NodeID NodeID Type Path -> Flow .
+endfm
+
+fmod SUBFLOW is
+	pr FLOW .
+	sort Subflow .
+	subsort Subflow < Configuration .
+	pr SET{QoSAnnotation} * (sort Set{QoSAnnotation} to QoSAnnotationSet) . 
+	op SF(_|_|_:_->_:_:_|_|_|_) : Nat Nat NodeID Interface NodeID Type Bool Parameter QoSAnnotationSet QoSAnnotationSet -> Subflow [format (nt d d d d d d d d d d d d d d d d d d d d d d)] . ***incoming Annotation and outcoming Annotation
+endfm
+
+
+view Subflow from TRIV to SUBFLOW is
+    sort Elt to Subflow .
+endv
+
+mod Network is 
+	***inc META-LEVEL .
+	pr PROCESSOR .
+	pr FLOW .
+	pr SUBFLOW .
+	
+	vars F1 F2 F3 F4 : Nat .
+	vars Sub1 Sub2 Sub3 Sub4 : Nat .  
+	vars N1 N2 N3 N4 N5 : Nat .
+	vars t1 t2 t3 : Type . ***flow type
+        var QoSSetIn QoSSetOut : QoSAnnotationSet .
+        vars Delayin TPin Jitterin Lossin : Float .
+        vars Delayout TPout Jitterout Lossout : Float .
+	vars item item1 : Float .
+	vars p1 m1 x1 q1 p2 m2 x2 q2 : Float .
+	vars Poi Poi1 : Float . *** accumulative lamda(packets arrival rate) inside node
+	vars len len1 : Float . *** accumulative packet length inside node
+	
+	var  FlowPin : Float . *** incoming parameters for single flow
+	var FlowPout : Float . *** outcoming parameters for single flow
+
+	vars current total current1 total1 t tt : Nat .
+
+	vars Flag1 Flag2 : Bool .
+
+	
+	op none : -> Configuration [ctor] .
+	op __ : Configuration Configuration -> Configuration [ctor assoc comm id: none] . 
+
+*** first four rules for Poisson
+
+	crl  N(N1 : Nic(t) | P(p1) | M(m1) | X(x1) | Q(q1) | PoiPara( Poi , len )  { total | current }) 
+	   SF(F1 | Sub1 | N(N1) : Nic(t) -> N(N2) : t1 : false | PoiPara( FlowPin, item ) | delay : Delayin, throughput : TPin, jitter : Jitterin, packetloss : Lossin, itemlenth : item | unknown ) =>
+	    N(N1 : Nic(t)| P(p1) | M(m1) | X(x1) | Q(q1) | PoiPara( Poi1 , len1 )  { total | current1 }) 
+	   SF(F1 | Sub1 | N(N1) : Nic(t) -> N(N2) : t1 : true | PoiPara( FlowPin, item ) | delay : Delayin, throughput : TPin, jitter : Jitterin, packetloss : Lossin, itemlenth : item | unknown ) 
+
+	if current1 := current + 1 /\
+	   Poi1 :=  Poi + FlowPin  /\
+	   len1 := (Poi * len + FlowPin * item ) / (Poi + FlowPin) .
+
+	
+	crl N(N1 : Nic(t)  | P(p1) | M(m1) | X(x1) | Q(q1) | PoiPara( Poi , len ) { total | total }) 
+	   SF(F1 | Sub1 | N(N1) : Nic(t) -> N(N2) : t1 : Flag1 | PoiPara( FlowPin, item ) | delay : Delayin, throughput : TPin, jitter : Jitterin, packetloss : Lossin, itemlenth : item | unknown )
+	=>   N(N1 : Nic(t) | P(p1) | M(m1) | X(x1) | Q(q1) | PoiPara( Poi , len ) { total | total }) 
+	   SF(F1 | Sub1 | N(N1) : Nic(t) -> N(N2) : t1 : Flag2 | PoiPara( FlowPin, item ) | delay : Delayin, throughput : TPin, jitter : Jitterin, packetloss : Lossin, itemlenth : item |
+                                                delay : Delayout, throughput : TPout, jitter : Jitterout, packetloss : Lossout, itemlenth : item )
+	
+	if Delayout :=  len / ( x1 - Poi * len + 0.001) + Delayin /\
+	   TPout := FlowPin * item /\
+	   Jitterout := Jitterin /\ ***Jitterout := max( Jitterin, abs( Delayout - Delayin )  /\
+	   Lossout := Lossin /\
+	   Flag2 := false .  *** not counted by next node
+
+	rl N(N1 : Nic(t) | P(p1) | M(m1) | X(x1) | Q(q1) | PoiPara( Poi , len ) { total | current })  
+	  SF(F1 | Sub1 | N(N1) : Nic(t) -> N(N2) : t1 : Flag1 | PoiPara( FlowPout, item )  | delay : Delayin, throughput : TPin, jitter : Jitterin, packetloss : Lossin, itemlenth : item | delay : 	Delayout, throughput : TPout, jitter : Jitterout, packetloss : Lossout, itemlenth : item )
+	  SF(F1 | Sub2 | N(N2) : Nic(tt) -> N(N3) : t1 : Flag2 | PoiPara( FlowPin, item1 )  | unknown | unknown ) 
+	=> N(N1 : Nic(t) | P(p1) | M(m1) | X(x1) | Q(q1) | PoiPara( Poi , len ) { total | current })   
+	   SF(F1 | Sub2 | N(N2) : Nic(tt) -> N(N3) : t1 : Flag2 | PoiPara( FlowPout , item) | delay : Delayout, throughput : TPout, jitter : Jitterout, packetloss : Lossout, itemlenth : item |    unknown ) .
+           
+	             *** ------------------ Test examples --------------------
+	            
+	             *** 
+	
+op net0 : -> Configuration .
+eq net0 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 27 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 27 ) : Nic(3) -> N( 28 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 28 ) : Nic(2) -> N( 2 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 2 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 4 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net2 : -> Configuration .
+eq net2 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 6 ) : Nic(2) -> N( 8 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(1 | 3 |  N( 8 ) : Nic(3) -> N( 29 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(1 | 4 |  N( 29 ) : Nic(3) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 4 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+ .
+op net5 : -> Configuration .
+eq net5 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 2 ) : Nic(2) -> N( 28 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 3 |  N( 28 ) : Nic(3) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 27 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 27 ) : Nic(3) -> N( 25 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 25 ) : Nic(2) -> N( 2 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 2 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(3) -> N( 28 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 28 ) : Nic(2) -> N( 2 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 2 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 1 ) : Nic(1) -> N( 3 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 5 |  N( 3 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 6 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net8 : -> Configuration .
+eq net8 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net14 : -> Configuration .
+eq net14 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net15 : -> Configuration .
+eq net15 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net17 : -> Configuration .
+eq net17 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net18 : -> Configuration .
+eq net18 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net20 : -> Configuration .
+eq net20 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net22 : -> Configuration .
+eq net22 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net24 : -> Configuration .
+eq net24 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net27 : -> Configuration .
+eq net27 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net29 : -> Configuration .
+eq net29 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+op net28 : -> Configuration .
+eq net28 = 
+SF(1 | 1 |  N( 1 ) : Nic(1) -> N( 2 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(1 | 2 |  N( 2 ) : Nic(2) -> N( 25 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(2 | 1 |  N( 1 ) : Nic(1) -> N( 5 ) : Type(1) : false | PoiPara( 4.0 , 0.25 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(2 | 2 |  N( 5 ) : Nic(2) -> N( 26 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 1 |  N( 19 ) : Nic(2) -> N( 7 ) : Type(1) : false | PoiPara( 5.0 , 0.2 ) | delay : 0.0, throughput : 1.0, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(3 | 2 |  N( 7 ) : Nic(1) -> N( 3 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(3 | 3 |  N( 3 ) : Nic(2) -> N( 11 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 1 |  N( 21 ) : Nic(2) -> N( 3 ) : Type(1) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(4 | 2 |  N( 3 ) : Nic(1) -> N( 4 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(4 | 3 |  N( 4 ) : Nic(2) -> N( 13 ) : Type(1) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(5 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 3.0 , 0.2 ) | delay : 0.0, throughput : 0.6, jitter : 0.0, packetloss : 0.0, itemlenth : 0.2 | unknown)
+SF(5 | 2 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(6 | 1 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(6 | 2 |  N( 6 ) : Nic(2) -> N( 9 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 1 |  N( 23 ) : Nic(3) -> N( 26 ) : Type(2) : false | PoiPara( 2.0 , 0.25 ) | delay : 0.0, throughput : 0.5, jitter : 0.0, packetloss : 0.0, itemlenth : 0.25 | unknown)
+SF(7 | 2 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 3 |  N( 5 ) : Nic(1) -> N( 1 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 4 |  N( 1 ) : Nic(1) -> N( 6 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(7 | 5 |  N( 6 ) : Nic(2) -> N( 10 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 1 |  N( 26 ) : Nic(2) -> N( 5 ) : Type(2) : false | PoiPara( 3.0 , 0.1 ) | delay : 0.0, throughput : 0.3, jitter : 0.0, packetloss : 0.0, itemlenth : 0.1 | unknown)
+SF(8 | 2 |  N( 5 ) : Nic(1) -> N( 7 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 3 |  N( 7 ) : Nic(2) -> N( 12 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+SF(8 | 4 |  N( 12 ) : Nic(3) -> N( 16 ) : Type(2) : false | PoiPara( 0.0 , 0.0 ) | unknown | unknown)
+N( 1 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 5 | 0 })
+N( 2 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 2 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 3 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 4 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 4 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 5 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 5 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 6 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 6 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 3 | 0 })
+N( 7 : Nic(1) | P(0.0) | M(0.0) | X(100.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 7 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 8 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 8 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 9 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 10 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 11 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 12 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 13 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 14 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 15 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 16 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 17 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 18 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 19 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 20 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 21 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 22 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 23 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 1 | 0 })
+N( 24 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 25 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 26 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 2 | 0 })
+N( 26 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 27 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 28 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(2) | P(0.0) | M(0.0) | X(10.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+N( 29 : Nic(3) | P(0.0) | M(0.0) | X(2.0) | Q(50.0) | PoiPara( 0.0 , 0.0) { 0 | 0 })
+ .
+	
+endm
+rew net0 .
+rew net1 .
+rew net2 .
+rew net3 .
+rew net4 .
+rew net5 .
+rew net6 .
+rew net7 .
+rew net8 .
+rew net9 .
+rew net10 .
+rew net11 .
+rew net12 .
+rew net13 .
+rew net14 .
+rew net15 .
+rew net16 .
+rew net17 .
+rew net18 .
+rew net19 .
+rew net20 .
+rew net21 .
+rew net22 .
+rew net23 .
+rew net24 .
+rew net25 .
+rew net26 .
+rew net27 .
+rew net28 .
+rew net29 .

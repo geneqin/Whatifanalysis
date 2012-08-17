@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2011, SRI International .
+  ~ Developed with the sponsorship of the Defense Advanced Research Projects Agency DARPA .
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of this data, including any software or models in source or binary form, as well as any drawings, specifications, and documentation collectively "the Data", to deal in the Data without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Data, and to permit persons to whom the Data is furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Data .
+  ~
+  ~ THE DATA IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS, SPONSORS, DEVELOPERS, CONTRIBUTORS, OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE DATA OR THE USE OR OTHER DEALINGS IN THE DATA .
+  -->
+
+<!-- ******************** 80 columns *************************************** -->
+<!-- This is an ant project file. For more info about ant see: -->
+<!-- http://ant.apache.org/ -->
+
+<project default="jar" name="promise">
+
+    <property name="build" location="build"/>
+    <property name="classes" location="${build}/classes"/>
+    <property name="src" location="src"/>
+
+    <property name="DEBUG" value="on"/>
+    <property name="DEPRECATION" value="on"/>
+
+    <property name="topzipdir" value="PromiseEditor"/>
+
+    <property name="package" value="promised"/>
+
+    <!-- default platform for linking Wil's tools -->
+    <property name="platform" value="macosx.1"/>
+
+    <path id="classpath">
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="classpath.with.project">
+        <path refid="classpath"/>
+        <pathelement location="${build}/${package}.jar"/>
+    </path>
+
+
+    <target name="compile">
+        <mkdir dir="${classes}"/>
+        <javac destdir="${classes}"
+               srcdir="${src}"
+               source="1.6"
+               debug="${DEBUG}"
+               deprecation="${DEPRECATION}"
+               includeantruntime="false"
+               classpathref="classpath">
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+    </target>
+
+    <!-- create soft-links for Wil's executable based on platform -->
+    <target name="check.execs.exist">
+        <condition property="execs.exist">
+            <and>
+                <available file="performance/bin/tt_scheduler_adv"/>
+                <available file="performance/bin/rc_checker"/>
+            </and>
+        </condition>
+    </target>
+    <target name="link"
+            depends="check.execs.exist"
+            unless="execs.exist"
+            if="platform">
+        <!-- skip if executables already exist -->
+        <delete file="performance/bin/tt_scheduler_adv"/>
+        <exec os="Mac OS X"
+              executable="ln"
+              dir="performance/bin">
+            <arg line="-v -s tt_scheduler_adv.${platform} tt_scheduler_adv"/>
+        </exec>
+        <exec os="Linux"
+              executable="ln"
+              dir="performance/bin">
+            <arg line="-v -s tt_scheduler_adv.ubuntu tt_scheduler_adv"/>
+        </exec>
+        <delete file="performance/bin/rc_checker"/>
+        <exec os="Mac OS X"
+              executable="ln"
+              dir="performance/bin">
+            <arg line="-v -s rc_checker.${platform} rc_checker"/>
+        </exec>
+        <exec os="Linux"
+              executable="ln"
+              dir="performance/bin">
+            <arg line="-v -s rc_checker.ubuntu rc_checker"/>
+        </exec>
+    </target>
+
+    <!-- Build jar file with all classes and resources -->
+    <target name="jar"
+            depends="compile, link"
+            description="Build JAR file from compiled classes">
+
+        <!-- copy resources first -->
+        <copy todir="${classes}">
+            <fileset dir="${src}">
+                <include name="**/*.properties"/>
+                <include name="**/*.gif"/>
+            </fileset>
+        </copy>
+
+        <tstamp/>
+        <jar compress="false"
+             manifestencoding="UTF8"
+             jarfile="${build}/${package}.jar">
+
+            <fileset dir="${classes}"/>
+
+            <!-- customize manifest -->
+            <manifest>
+                <attribute name="Main-Class" value="com.sri.promise.editor.Editor"/>
+                <attribute name="Built-By" value="${user.name}"/>
+                <section name="common">
+                    <attribute name="Specification-Title" value="PROMISE GUI"/>
+                    <attribute name="Specification-Version" value="1.0"/>
+                    <attribute name="Specification-Vendor" value="SRI International"/>
+                    <attribute name="Implementation-Title" value="PROMISE GUI"/>
+                    <attribute name="Implementation-Version" value="${DSTAMP}-${TSTAMP}"/>
+                    <attribute name="Implementation-Vendor" value="SRI International"/>
+                </section>
+            </manifest>
+
+
+        </jar>
+    </target>
+
+
+    <!-- ******************************************************************* -->
+    <!-- running:                                                            -->
+    <!-- ******************************************************************* -->
+
+    <target name="run"
+            description="Run Promise Editor"
+            depends="jar">
+        <java classname="com.sri.promise.editor.Editor"
+              fork="true"
+              classpathref="classpath.with.project"
+              dir="${basedir}">
+            <jvmarg value="-Djava.library.path=${basedir}/lib/"/>
+        </java>
+    </target>
+
+    <target name="run.bdd"
+            description="Run Promise Fault Analyzer - JavaBDD version">
+        <echo message="Use the supplied script './run-bdd.sh' for this."/>
+    </target>
+
+
+    <!-- ******************************************************************* -->
+    <!-- deliverable:                                                        -->
+    <!-- ******************************************************************* -->
+
+    <target name="deliverable"
+            depends="clean"
+            description="Create a deliverable ZIP file">
+        <delete>
+            <fileset dir="." includes="PROMISE-Editor-deliverable-*.zip"/>
+        </delete>
+        <tstamp/>
+        <zip destfile="PROMISE-Editor-deliverable-${DSTAMP}.zip"
+             encoding="UTF8">
+            <zipfileset dir="src" prefix="${topzipdir}/src"/>
+            <zipfileset dir="lib" prefix="${topzipdir}/lib"/>
+            <zipfileset file="examples/bbw-demo.xml" prefix="${topzipdir}/examples"/>
+            <zipfileset file="examples/simple-demo.xml" prefix="${topzipdir}/examples"/>
+            <zipfileset file="examples/network.dtd" prefix="${topzipdir}/examples"/>
+            <zipfileset file="build.xml" prefix="${topzipdir}" />
+            <zipfileset file="README" prefix="${topzipdir}" />
+            <zipfileset dir="performance" prefix="${topzipdir}/performance" filemode="755"
+                        excludes="**/tt_scheduler_adv,**/rc_checker,**/BBW.display*,**/plot*" />
+            <zipfileset dir="../Maude" prefix="${topzipdir}/maude"
+                        includes="network*.maude" />
+        </zip>
+    </target>
+
+
+    <target name="clean"
+            description="Clean all build products (from this tree)">
+        <delete dir="${build}"/>
+        <delete verbose="true">
+            <fileset dir="performance/bin" includes="tt_scheduler_adv,rc_checker"/>
+        </delete>
+    </target>
+
+</project>

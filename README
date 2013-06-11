@@ -36,3 +36,5 @@ OTHER DEALINGS IN THE DATA .
 
 =======================================
 current version only consider delay parameters. and use Poisson process to decribe the traffic flow arrival.
+More research details, please refer to: 
+Zhijing Qin, Grit Denker, Nalini Venkatasubramanian, Carolyn Talcott. " Achieving Resilience of Heterogeneous Networks Through Predictive, Formal Analysis". In the 2nd ACM International Conference on High Confidence Networked Systems (HiCoNS), as part of Cyber Physical Systems (CPS) Week 2013
